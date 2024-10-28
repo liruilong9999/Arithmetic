@@ -1,0 +1,9 @@
+/bin/*
+!/bin/html/
+!/bin/config/
+/*.pro.*
+/build/*
+/*build*/*
+
+# Qt Creator
+CMakeLists.txt.user
