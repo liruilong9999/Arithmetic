@@ -2,12 +2,13 @@
 #define MYTOOLS_STRING_H
 
 #include <stdio.h>
+#include "tools_gloabal.h"
 
 namespace MyTools
 {
 	typedef unsigned short WChar;
 
-	class LString 
+	class TOOLS_EXPORT LString 
 	{
 	private:
 		WChar *_d; // RefCount|CharCount|BufferSize|chars...

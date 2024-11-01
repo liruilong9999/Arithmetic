@@ -8,10 +8,10 @@ get_filename_component(ProjectName ${AbsolutePathProject} NAME)
 set(QT_LIBRARY_LIST "Core")
 
 # 链接自身库
-set(SELF_LIBRARY_LIST "")
+set(SELF_LIBRARY_LIST "tools")
 
 # 预编译
-add_compile_definitions()
+add_compile_definitions(GEO_LIBRARY)
 
 # 创建项目 
 CreateTarget(${ProjectName} "Dll")

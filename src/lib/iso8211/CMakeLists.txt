@@ -11,7 +11,7 @@ set(QT_LIBRARY_LIST "Core")
 set(SELF_LIBRARY_LIST "geo" "tools")
 
 # 预编译
-add_compile_definitions()
+add_compile_definitions(ISO8211_LIBRARY)
 
 # 创建项目 
-CreateTarget(${ProjectName} "Dll")
+CreateTarget(${ProjectName} "Dll") 

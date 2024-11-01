@@ -2,6 +2,7 @@
 #define RTREE_H
 
 #include <stdio.h>
+#include "geo_gloabal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,20 +38,20 @@ typedef struct RTree
 	void *cb_arg;
 } RTree;
 
-RTree *rtreeCreate();
+GEO_EXPORT RTree *rtreeCreate();
 
-void rtreeDestroy(RTree *);
+GEO_EXPORT void rtreeDestroy(RTree *);
 
 // Inserts a rectangle to the tree. 
 // NOTE: The data cann't be empty, i.e. cann't be NULL or 0.
-void rtreeInsert(RTree *, int minX, int minY, int maxX, int maxY, void *data);
+GEO_EXPORT void rtreeInsert(RTree *, int minX, int minY, int maxX, int maxY, void *data);
 
-void rtreeSetFilter(RTree *, RT_SearchFilter filter, void *arg);
+GEO_EXPORT void rtreeSetFilter(RTree *, RT_SearchFilter filter, void *arg);
 
-int rtreeSearch(RTree *, int minX, int minY, int maxX, int maxY);
+GEO_EXPORT int rtreeSearch(RTree *, int minX, int minY, int maxX, int maxY);
 
-void rtreeSave(RTree *, FILE *fp);
-RTree *rtreeRejoint(void *treeImage);
+GEO_EXPORT void rtreeSave(RTree *, FILE *fp);
+GEO_EXPORT RTree *rtreeRejoint(void *treeImage);
 
 #ifdef __cplusplus
 }

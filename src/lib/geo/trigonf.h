@@ -1,11 +1,13 @@
 #ifndef TRIGONF_H
 #define TRIGONF_H
 
+#include "geo_gloabal.h"
+
 namespace Geo
 {
     typedef long trigonf_t; // Trigonometric function value type
 
-    class Trigonf
+    class GEO_EXPORT Trigonf
     {
     private:
         static trigonf_t _sinv[];

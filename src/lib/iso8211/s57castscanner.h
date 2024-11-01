@@ -9,9 +9,11 @@
 #include "s57_module.h"
 #include "s57parsescanner.h"
 
+#include "iso8211_gloabal.h"
+
 struct RTree;
 
-class S57CastScanner : public S57ParseScanner
+class ISO8211_EXPORT S57CastScanner : public S57ParseScanner
 {
 private:
 	std::string _outputPath;

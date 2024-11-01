@@ -1,6 +1,8 @@
 #ifndef GRECT_H
 #define GRECT_H
 
+#include "geo_gloabal.h"
+
 #ifndef MAX
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #endif
@@ -15,7 +17,7 @@ namespace Geo
 	const G_INT32 G_MAXV = +2147483647;
 	const G_INT32 G_MINV = -2147483647;
 
-	class GPoint
+	class GEO_EXPORT GPoint
 	{
 	private:
 		G_INT32 _x;
@@ -78,7 +80,7 @@ namespace Geo
 	// The GRect class defines a rectangle in the Cartesion 
 	// coordinate system. It normally indicates a geodetic
 	// rectangle after projection.
-	class GRect
+	class GEO_EXPORT GRect
 	{
 	private:
 		G_INT32 _x1; // minimum x (left)

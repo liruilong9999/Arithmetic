@@ -16,4 +16,4 @@ set(QT_LIBRARY_LIST "Core")
 add_compile_definitions(TOOLS_LIBRARY)
 
 # 创建项目 
-CreateTarget(${ProjectName} "Dll")  
+CreateTarget(${ProjectName} "Dll")   

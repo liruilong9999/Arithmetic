@@ -6,7 +6,7 @@
 #include <strstream>
 #include <iomanip>
 
-#include "../tools/String.h"
+#include "../tools/LString.h"
 
 #include "s57_utils.h"
 #include "assure_fio.h"
@@ -71,7 +71,7 @@ string S57_AttItem::toString(int llcode) const
 	os << INDENT << "*ATTL: " << _attl << endl
 		<< INDENT << "ATVL:  ";
 	if (llcode == S57_LL2)
-		os << String::fromUcs2(_atvl.data(), _atvl.size(), false).toUtf8();
+		os << LString::fromUcs2(_atvl.data(), _atvl.size(), false).toUtf8();
 	else 
 		os << _atvl;
 	os << endl << ends;

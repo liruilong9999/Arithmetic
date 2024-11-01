@@ -6,13 +6,14 @@
 // #include <sys/shm.h>
 
 #include "LString.h"
+#include "tools_gloabal.h"
 
 namespace MyTools
 {
 	struct LogListInfo;
 	struct LogItemInfo;
 
-	class LogCatItem
+	class TOOLS_EXPORT LogCatItem
 	{
 	private:
 		char *_p;
@@ -38,7 +39,7 @@ namespace MyTools
 		friend class LogCat;
 	};
 
-	class LogCat
+	class TOOLS_EXPORT LogCat
 	{
 	public:
 		enum LogType { 

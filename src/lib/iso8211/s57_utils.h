@@ -4,16 +4,18 @@
 #include <string>
 #include <vector>
 
-/* 
+#include "iso8211_gloabal.h"
+
+/*
  * S57 integer type
  */
-typedef unsigned char	s57_b11;
-typedef unsigned short	s57_b12;
-typedef unsigned long	s57_b14;
+typedef unsigned char  s57_b11;
+typedef unsigned short s57_b12;
+typedef unsigned long  s57_b14;
 
-typedef signed char	s57_b21;
-typedef signed short	s57_b22;
-typedef signed long	s57_b24;
+typedef signed char  s57_b21;
+typedef signed short s57_b22;
+typedef signed long  s57_b24;
 
 /*
  * Field and Subfield termination
@@ -31,7 +33,7 @@ const int S57_LL2 = 2; // UCS-2 implementation levle 1
 /*
  * value that not relevant
  */
-const int S57_NR = 255; 
+const int S57_NR = 255;
 
 /*
  * Update instruction
@@ -41,7 +43,7 @@ const s57_b11 S57_UI_D = 2; // Delete
 const s57_b11 S57_UI_M = 3; // Modify
 
 /*
- * Record name [RCNM] 
+ * Record name [RCNM]
  */
 const s57_b11 RCNM_DS = 10;  // Data Set General Information
 const s57_b11 RCNM_DP = 20;  // Data Set Geographic Reference
@@ -58,12 +60,12 @@ const s57_b11 RCNM_VE = 130; // Vector - Edge
 const s57_b11 RCNM_VF = 140; // Vector - Face
 
 /*
- * Data structure [DSTR] 
+ * Data structure [DSTR]
  */
-const s57_b11 DSTR_CS = 1; // Catrographic spaghetti
-const s57_b11 DSTR_CN = 2; // Chain-node
-const s57_b11 DSTR_PG = 3; // Planar graph
-const s57_b11 DSTR_FT = 4; // Full Topology
+const s57_b11 DSTR_CS = 1;      // Catrographic spaghetti
+const s57_b11 DSTR_CN = 2;      // Chain-node
+const s57_b11 DSTR_PG = 3;      // Planar graph
+const s57_b11 DSTR_FT = 4;      // Full Topology
 const s57_b11 DSTR_NO = S57_NR; // Topology is not relevant
 
 /*
@@ -95,27 +97,27 @@ const s57_b11 PROJ_OST = 14; // Oblique stereographic
  * Object geometric primitive [PRIM]
  * XXX The geometric primitive for all soundings must be point.
  */
-const s57_b11 PRIM_P = 1; // Point
-const s57_b11 PRIM_L = 2; // Line
-const s57_b11 PRIM_A = 3; // Area
+const s57_b11 PRIM_P = 1;      // Point
+const s57_b11 PRIM_L = 2;      // Line
+const s57_b11 PRIM_A = 3;      // Area
 const s57_b11 PRIM_N = S57_NR; // Object does not directly reference and geometry
                                // This value is used for feature records which do
-                               // not reference and spatial records (e.g. collection 
+                               // not reference and spatial records (e.g. collection
                                // feature records).
 
 /*
  * Orientation [ORNT]
  */
-const s57_b11 ORNT_F = 1; // Forward
-const s57_b11 ORNT_R = 2; // Reverse
+const s57_b11 ORNT_F = 1;      // Forward
+const s57_b11 ORNT_R = 2;      // Reverse
 const s57_b11 ORNT_N = S57_NR; // Direction is not relevant
 
 /*
  * Usage indicator [USAG]
  */
-const s57_b11 USAG_E = 1; // Exterior
-const s57_b11 USAG_I = 2; // Interior
-const s57_b11 USAG_C = 3; // Exterior boundary truncated by the data limit
+const s57_b11 USAG_E = 1;      // Exterior
+const s57_b11 USAG_I = 2;      // Interior
+const s57_b11 USAG_C = 3;      // Exterior boundary truncated by the data limit
 const s57_b11 USAG_N = S57_NR; // Usage is not relevant
 
 /*
@@ -127,8 +129,8 @@ const s57_b11 TOPI_E = 2; // End node
 /*
  * Masking indicator [MASK]
  */
-const s57_b11 MASK_M = 1; // Mask
-const s57_b11 MASK_S = 2; // Show
+const s57_b11 MASK_M = 1;      // Mask
+const s57_b11 MASK_S = 2;      // Show
 const s57_b11 MASK_N = S57_NR; // Masking is not relevant
 
 /*
@@ -137,12 +139,12 @@ const s57_b11 MASK_N = S57_NR; // Masking is not relevant
 const s57_b11 EXPP_N = 1; // Data set is new
 const s57_b11 EXPP_R = 2; // Data set is a revision to an existing one
 
-extern const char *INDENT;
+extern const char * INDENT;
 
 /*
  * general-purpose pointer wrapper with reference counting
  */
-class RefBase
+class ISO8211_EXPORT RefBase
 {
 private:
     int _refCount;
@@ -156,67 +158,75 @@ public:
 };
 
 inline RefBase::RefBase()
-    : _refCount(0) {}
+    : _refCount(0)
+{}
 
 inline int RefBase::ref()
-{ return _refCount++; }
+{
+    return _refCount++;
+}
 
 inline int RefBase::unref()
-{ return --_refCount; }
+{
+    return --_refCount;
+}
 
 inline int RefBase::refCount() const
-{ return _refCount; }
+{
+    return _refCount;
+}
 
 template <class T>
-class Ref
+class ISO8211_EXPORT Ref
 {
 private:
-    T *_rep;
+    T * _rep;
 
 public:
     Ref();
-    Ref(T *p);
-    Ref(const Ref &r);
-    Ref &operator=(const Ref &r);
+    Ref(T * p);
+    Ref(const Ref & r);
+    Ref & operator=(const Ref & r);
     ~Ref();
 
-    T *operator->() const;
-    T &operator()();
-    bool operator==(const Ref &r) const;
+    T *  operator->() const;
+    T &  operator()();
+    bool operator==(const Ref & r) const;
 
-    T *getPtr();
-	const T *getPtr() const;
-    bool isNull() const;
+    T *       getPtr();
+    const T * getPtr() const;
+    bool      isNull() const;
 
-	void release();
+    void release();
 };
 
 template <class T>
 inline Ref<T>::Ref()
-    : _rep((T*)NULL) {}
+    : _rep((T *)NULL)
+{}
 
 template <class T>
-inline Ref<T>::Ref(T *p)
+inline Ref<T>::Ref(T * p)
     : _rep(p)
 {
-    if (p != (T*)NULL)
+    if (p != (T *)NULL)
         p->ref();
 }
 
 template <class T>
-inline Ref<T>::Ref(const Ref<T> &r) 
+inline Ref<T>::Ref(const Ref<T> & r)
     : _rep(r._rep)
 {
-    if (_rep != (T*)NULL) 
+    if (_rep != (T *)NULL)
         _rep->ref();
 }
 
 template <class T>
-inline Ref<T> &Ref<T>::operator=(const Ref<T> &r)
+inline Ref<T> & Ref<T>::operator=(const Ref<T> & r)
 {
-    if (r._rep != (T*)NULL) 
+    if (r._rep != (T *)NULL)
         r._rep->ref();
-    if (_rep != (T*)NULL && _rep->unref() == 0) 
+    if (_rep != (T *)NULL && _rep->unref() == 0)
         delete _rep;
     _rep = r._rep;
     return *this;
@@ -224,58 +234,71 @@ inline Ref<T> &Ref<T>::operator=(const Ref<T> &r)
 
 template <class T>
 inline Ref<T>::~Ref()
-{ release(); }
+{
+    release();
+}
 
 template <class T>
-inline T *Ref<T>::operator->() const
-{ return _rep; }
+inline T * Ref<T>::operator->() const
+{
+    return _rep;
+}
 
 template <class T>
-inline T &Ref<T>::operator()()
-{ return *_rep; }
+inline T & Ref<T>::operator()()
+{
+    return *_rep;
+}
 
 template <class T>
-inline bool Ref<T>::operator==(const Ref<T> &r) const
-{ return _rep == r._rep; }
+inline bool Ref<T>::operator==(const Ref<T> & r) const
+{
+    return _rep == r._rep;
+}
 
 template <class T>
-inline T *Ref<T>::getPtr() 
-{ return _rep; }
+inline T * Ref<T>::getPtr()
+{
+    return _rep;
+}
 
 template <class T>
-inline const T *Ref<T>::getPtr() const
-{ return _rep; }
+inline const T * Ref<T>::getPtr() const
+{
+    return _rep;
+}
 
 template <class T>
-inline bool Ref<T>::isNull() const 
-{ return _rep == (T*)NULL; }
+inline bool Ref<T>::isNull() const
+{
+    return _rep == (T *)NULL;
+}
 
 template <class T>
 inline void Ref<T>::release()
 {
-    if (_rep != (T*)NULL && _rep->unref() == 0) 
+    if (_rep != (T *)NULL && _rep->unref() == 0)
         delete _rep;
-	_rep = NULL;
+    _rep = NULL;
 }
 
 // ~
 
-std::string strToPrintable(std::string);
-std::string intToStr(long i);
+ISO8211_EXPORT std::string strToPrintable(std::string);
+ISO8211_EXPORT std::string intToStr(long i);
 
-long strToInt(std::string);
-double strToFloat(std::string s);
+ISO8211_EXPORT long   strToInt(std::string);
+ISO8211_EXPORT double strToFloat(std::string s);
 
 typedef std::vector<std::string> StringList;
 
-
-void setDataDir(const std::string &dir);
-std::string getAbsolutePath(const std::string &path);
+ISO8211_EXPORT void setDataDir(const std::string & dir);
+ISO8211_EXPORT std::string getAbsolutePath(const std::string & path);
 
 /*
-// Splits the string str using sep as separator. 
-// Returns the list of strings. 
-// If allowEmptyEntry is TRUE, also empty entries are inserted into the list, else not. 
+// Splits the string str using sep as separator.
+// Returns the list of strings.
+// If allowEmptyEntry is TRUE, also empty entries are inserted into the list, else not.
 StringList splitString(char sep, std::string str, bool allowEmptyEntry = false);
 StringList splitString(std::string sep, std::string str, bool allowEmptyEntry = false);
 
@@ -283,13 +306,13 @@ StringList splitString(std::string sep, std::string str, bool allowEmptyEntry = 
 void scanS57DataSetFiles(StringList &fl, const char *prefix, const char *dirName, bool recursive);
 */
 
-class S57DatasetScanner
+class ISO8211_EXPORT S57DatasetScanner
 {
 private:
     bool _recursive;
 
 private:
-    void doScan(const std::string& prefix, const std::string& dirName);
+    void doScan(const std::string & prefix, const std::string & dirName);
 
 protected:
     // This function will be called while a S-57 dataset found.
@@ -310,16 +333,21 @@ public:
 // S57DatasetScanner inline functions
 
 inline S57DatasetScanner::S57DatasetScanner()
-    : _recursive(false) {}
+    : _recursive(false)
+{}
 
 inline S57DatasetScanner::~S57DatasetScanner()
 {}
 
 inline bool S57DatasetScanner::isRecursive() const
-{ return _recursive; }
+{
+    return _recursive;
+}
 
 inline void S57DatasetScanner::setRecursive(bool enabled)
-{ _recursive = enabled; }
+{
+    _recursive = enabled;
+}
 
 // ~
 

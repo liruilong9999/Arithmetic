@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 
-#include "../tools/String.h"
+#include "../tools/LString.h"
 #include "../geo/utmproject.h"
 #include "../geo/grect.h"
 #include "../geo/gcoord.h"

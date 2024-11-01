@@ -2,11 +2,12 @@
 #define MYTOOLS_LOG_H
 
 #include <stdio.h>
+#include "tools_gloabal.h"
 
 namespace MyTools
 {
 class LString;
-	class Logger
+	class TOOLS_EXPORT Logger
 	{
 	protected:
 		virtual void debug(const char *tag, const char *msg) = 0;
@@ -16,7 +17,7 @@ class LString;
 		friend class Log;
 	};
 
-	class Log
+	class TOOLS_EXPORT Log
 	{
 	private:
 		static Logger *_logger;

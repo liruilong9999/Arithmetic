@@ -7,8 +7,9 @@
 
 #include "s57_utils.h"
 #include "s57_record.h"
+#include "iso8211_gloabal.h"
 
-class S57Module : public RefBase
+class ISO8211_EXPORT S57Module : public RefBase
 {
 private:
 	FILE *_fp;

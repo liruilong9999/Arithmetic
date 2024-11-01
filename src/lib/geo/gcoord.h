@@ -2,6 +2,7 @@
 #define GCOORD_H
 
 #include <stdio.h>
+#include "geo_gloabal.h"
 
 // The GCoord class represents a coordinate item of 
 // latitude/longitude.
@@ -25,7 +26,7 @@ namespace Geo
 	inline int gcSign(gcDMS v)
 	{ return v & 0x1; }
 
-	class GCoord
+	class GEO_EXPORT GCoord
 	{
 	public:
 		enum Orientation { X, Y };

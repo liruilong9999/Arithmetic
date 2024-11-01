@@ -2,11 +2,11 @@
 #define RCS_ROTATION_H
 
 #include "trigonf.h"
-
+#include "geo_gloabal.h"
 namespace Geo
 {
 	// Rectanglar Coordinate System rotation
-	class RcsRotation
+	class GEO_EXPORT RcsRotation
 	{
 	protected:
 		int _angle;
