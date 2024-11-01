@@ -8,5 +8,12 @@ get_filename_component(ProjectName ${AbsolutePathProject} NAME)
 set(QT_LIBRARY_LIST "Core" "Gui" "Widgets" )
 # 链接库
 set(SELF_LIBRARY_LIST )
+
+include_directories(../../../dependence/gdal3.8.5/include)
+
+link_directories(../../../dependence/gdal3.8.5/lib) 
+
+link_libraries(gdal_i.lib)
+ 
 # 创建项目
 CreateTarget(${ProjectName} "ExeCMD")

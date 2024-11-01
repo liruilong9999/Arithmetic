@@ -4,6 +4,7 @@
 /*.pro.*
 /build/*
 /*build*/*
+/dependence/*
 
 # Qt Creator
 CMakeLists.txt.user
