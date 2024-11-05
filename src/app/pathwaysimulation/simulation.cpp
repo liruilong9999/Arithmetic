@@ -1,40 +1,19 @@
 #include <QDateTime>
+#include <QDebug>
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QTextStream>
 
 #include "simulation.h"
-
-enum class PlatType
-{
-    J10Type = 0, // ¼ß10
-    J11Type,     // ¼ß11
-    J16Type,     // ¼ß16
-    YJJType,     // Ô¤¾¯»ú
-};
-
-enum class SimuPos
-{
-    XinJiang = 0, // ĞÂ½®
-    NanHai        // ÄÏº£
-};
-
-struct PlatSate
-{
-    qint64 flightTime; // ·ÉĞĞÊ±¼ä
-    double longitude;  // ¾­¶È
-    double latitude;   // Î³¶È
-    double altitude;   // ¸ß¶È
-    double heading;    // º½Ïò
-    double pitch;      // ¸©Ñö½Ç
-    double roll;       // ºá¹ö½Ç
-    double speed;      // ËÙ¶È
-};
 
 struct PlatInfo
 {
     int                   platId{0};
     PlatType              platType{PlatType::YJJType};
-    std::vector<PlatSate> flightDatas;  // 1800-7200ÌõÊı¾İ£¨30·ÖÖÓ-2Ğ¡Ê±£©
-    qint64                bizTime;      // Êı¾İÊ±¼ä
-    std::vector<Vector3d> wayPointList; // Â·¾¶µãÁĞ±í
+    std::vector<PlatSate> flightDatas;  // 1800-7200æ¡æ•°æ®ï¼ˆ30åˆ†é’Ÿ-2å°æ—¶ï¼‰
+    qint64                bizTime;      // æ•°æ®æ—¶é—´
+    std::vector<Vector3d> wayPointList; // è·¯å¾„ç‚¹åˆ—è¡¨
 };
 
 struct SimulationPrivate
@@ -58,7 +37,7 @@ Simulation::~Simulation()
     }
 }
 
-void Simulation::startSimulation()
+void Simulation::startSimulation(int id,int type)
 {
     if (m_step < 1.0)
     {
@@ -68,31 +47,26 @@ void Simulation::startSimulation()
     {
         m_minute = 30.0;
     }
-    // ¼ÆËã×Ü¹²¶àÉÙ¸ö·ÂÕæÖÜÆÚ
+    // è®¡ç®—æ€»å…±å¤šå°‘ä¸ªä»¿çœŸå‘¨æœŸ
     int simulationCount = int(m_minute * 60.0 / m_step);
 
     PlatInfo platInfo;
-    platInfo.platId;   // todo
-    platInfo.platType; // todo
+    platInfo.platId = id;  
+    platInfo.platType; 
     platInfo.bizTime = QDateTime::currentMSecsSinceEpoch();
 
-    // Éú³É¹ì¼£µãÁĞ±í
-
-    // ¹ì¼£µãÁĞ±íµ¹½Ç
-
+    // ç”Ÿæˆè½¨è¿¹ç‚¹åˆ—è¡¨
+    generatePathWay(platInfo);
+    // è½¨è¿¹ç‚¹åˆ—è¡¨å€’è§’
+    bevellingPathWay(platInfo);
     qint64 currentTime = m_startTime;
-    // Èç¹ûÒªÊµÊ±·¢Êı¾İ£¬ÏÂÃæµÄ¸ÄÎªQTimer£¬ÕâÀïÔİÊ±²»×öÒªÇó
-    for (int i = 0; i < simulationCount; i++)
-    {
-        PlatSate platState;
-        // todo
-        // ÍÆÑİÁù×ÔÓÉ¶È
-        platInfo.flightDatas.push_back(platState);
-    }
+
+    // å¦‚æœè¦å®æ—¶å‘æ•°æ®ï¼Œä¸‹é¢çš„æ”¹ä¸ºQTimerï¼Œè¿™é‡Œæš‚æ—¶ä¸åšè¦æ±‚
+    platInfo.flightDatas = generateFlightStates(platInfo.wayPointList, currentTime);
     m_pDatas->platVec.push_back(platInfo);
 }
 
-void Simulation::generatePathWay(PlatInfo platInfo, int simulationCount)
+void Simulation::generatePathWay(PlatInfo & platInfo)
 {
     std::vector<Vector3d> range;
     if (m_pDatas->pos == SimuPos::XinJiang)
@@ -108,18 +82,74 @@ void Simulation::generatePathWay(PlatInfo platInfo, int simulationCount)
         // no thing need todo
     }
 
-	// ½«ÇøÓò²ğ·Ö³É 6*6¸öĞ¡ÇøÓò
-
-
-    // Èç¹ûÊÇÔ¤¾¯»ú£¬¾ÍÈÆÈ¦£¬·ñÔòËæ»ú×ß
+    if (range.size() != 2)
+    {
+        return;
+    }
+    std::vector<Vector3d> wayPointList;
+    // å¦‚æœæ˜¯é¢„è­¦æœºï¼Œå°±ç»•åœˆï¼Œå¦åˆ™éšæœºèµ°
     if (platInfo.platType == PlatType::YJJType)
     {
-
+        wayPointList = generateFlightPath(range.front(), range.back(), m_minute * 60);
     }
-	else
-	{
-	
-	}
+    else
+    {
+        wayPointList = generateFlightPath(range.front(), range.back(), m_minute * 60);
+    }
+
+    // ç”Ÿæˆé«˜åº¦
+    int size = wayPointList.size();
+    if (size < 6)
+    {
+        for (auto & pos : wayPointList)
+        {
+            pos.z = 10000.0;
+        }
+    }
+    else
+    {
+        int    step       = size / 4;              // æ—¶é—´ä¸Šçš„é—´è·
+        double heightStep = 1000.0 / (step * 1.0); // ç©ºé—´ä¸Šçš„é—´è·
+
+        double height = 10000.0;
+        for (int i = 0; i < size; i++)
+        {
+            if (i < step) // é™ä½
+            {
+                height = height -  heightStep;
+            }
+            else if (i >= step && i < step * 2) // å‡é«˜
+            {
+                height = height + heightStep;
+            }
+            else if (i >= step * 2 && i < step * 3) // é™ä½
+            {
+                height = height - heightStep;
+            }
+            else if (i >= step * 3 && i < step * 4) // å‡é«˜
+            {
+                height = height + heightStep;
+            }
+            wayPointList[i].z = height;
+        }
+    }
+
+    platInfo.wayPointList = wayPointList;
+}
+
+void Simulation::bevellingPathWay(PlatInfo & platInfo)
+{
+    int window_size = 3; // æ»‘åŠ¨çª—å£å¤§å°
+
+    std::vector<Vector3d> pathList = platInfo.wayPointList;
+    platInfo.wayPointList          = applySmoothingFilter(pathList, window_size);
+}
+
+PlatSate Simulation::calPosState(Vector3d & currPos, Vector3d & nextPos)
+{
+    PlatSate platState;
+
+    return platState;
 }
 
 void Simulation::save()
@@ -127,5 +157,33 @@ void Simulation::save()
     if (!m_pDatas)
     {
         return;
+    }
+
+    QString outDir;
+    if (m_pDatas->pos == SimuPos::XinJiang)
+    {
+        outDir = QCoreApplication::applicationDirPath() + "/data/XinJiang.csv";
+    }
+    else if (m_pDatas->pos == SimuPos::NanHai)
+    {
+        outDir = QCoreApplication::applicationDirPath() + "/data/Hainan.csv";
+    }
+    QStringList header = {"å¹³å°ç¼–å·", "æ•°æ®æ—¶é—´", "é£è¡Œæ—¶é—´", "ç»åº¦", "çº¬åº¦", "é«˜åº¦", "èˆªå‘", "ä¿¯ä»°è§’", "ç¿»æ»šè§’", "é€Ÿåº¦"};
+    QFile       file(outDir);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        return;
+    }
+    QTextStream stream(&file);
+    stream << header.join(",") + "\n";
+
+    for (PlatInfo platInfo : m_pDatas->platVec)
+    {
+        for (PlatSate platState : platInfo.flightDatas)
+        {
+            QString str =
+                QString::number(platInfo.platId) + "," + QString::number(platInfo.bizTime) + "," + QString::number(platState.flightTime) + "," + QString::number(platState.longitude) + "," + QString::number(platState.latitude) + "," + QString::number(platState.altitude) + "," + QString::number(platState.heading) + "," + QString::number(platState.pitch) + "," + QString::number(platState.roll) + "," + QString::number(platState.speed) + "\n";
+            stream << str;
+        }
     }
 }

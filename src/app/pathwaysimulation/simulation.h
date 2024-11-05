@@ -5,28 +5,7 @@
 #include <QPointF>
 
 #include <vector>
-
-struct Vector3d
-{
-    double x{0.0};
-    double y{0.0};
-    double z{0.0};
-
-    Vector3d() = default;
-
-    Vector3d(int a)
-        : Vector3d(a, 0)
-    {}
-
-    Vector3d(int a, int b)
-        : Vector3d(a, b, 0)
-    {}
-    Vector3d(int a, int b, int c)
-        : x(a)
-        , y(b)
-        , z(c)
-    {}
-};
+#include "define.hpp"
 
 struct SimulationPrivate;
 struct PlatInfo;
@@ -38,13 +17,15 @@ public:
     ~Simulation();
 
     // 开始仿真
-    void startSimulation();
+    void startSimulation(int id,int type);
 
     // 生成轨迹点列表
-    void generatePathWay(PlatInfo platInfo, int simulationCount);
+    void generatePathWay(PlatInfo & platInfo);
 
     // 轨迹点列表倒角
-    void bevellingPathWay();
+    void bevellingPathWay(PlatInfo & platInfo);
+
+    PlatSate calPosState(Vector3d & currPos, Vector3d & nextPos);
 
     void save();
 

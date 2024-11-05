@@ -1,0 +1,21 @@
+#ifndef MYPARSER_H__200241101
+#define MYPARSER_H__200241101
+
+#include <QObject>
+
+void run();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	my parser. </summary>
+/// DDR 含 头标区，目次区，和字段区的结构。
+/// <remarks>	Liruilong, 2024/11/1. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class MyParser : public QObject
+{
+    Q_OBJECT
+public:
+private:
+};
+
+#endif
