@@ -3,6 +3,11 @@
 
 #include <QtMath>
 #include <vector>
+#include <random>
+#include <algorithm>
+
+const double EARTH_RADIUS = 6371000.0; // 地球半径，米
+const double GRAVITY      = 9.81;      // 重力加速度
 
 struct Vector3d
 {
@@ -52,45 +57,40 @@ struct PlatSate
     double speed;      // 速度
 };
 
-inline Vector3d calculatePosition(const Vector3d & center, double radius_km, double angle)
+// 计算两点间的距离（米）
+inline double calculateDistance(const Vector3d & a, const Vector3d & b)
 {
-    double earth_radius_km = 6371.0; // 地球半径，千米
-
-    double delta_lat = (radius_km / earth_radius_km) * std::cos(angle);
-    double delta_lon = (radius_km / (earth_radius_km * std::cos(center.y * M_PI / 180))) * std::sin(angle);
-
-    return {
-        center.x + delta_lon * 180 / M_PI,
-        center.y + delta_lat * 180 / M_PI,
-        0.0 // 高度设为0
-    };
+    double dx = (b.x - a.x) * EARTH_RADIUS * M_PI / 180.0 * cos((a.y + b.y) * M_PI / 360.0);
+    double dy = (b.y - a.y) * EARTH_RADIUS * M_PI / 180.0;
+    double dz = b.z - a.z;
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
 
-// 生成一个模拟飞机的轨迹列表
-inline std::vector<Vector3d> generateFlightPath(const Vector3d & topLeft, const Vector3d & bottomRight, int duration_sec)
+// 生成模拟飞机路径的函数
+// 线性插值生成路径点
+inline std::vector<Vector3d> generateInterpolatedPath(const std::vector<Vector3d> & waypoints, double speed_km_s)
 {
     std::vector<Vector3d> path;
+    double                speed_m_s = speed_km_s * 1000.0 / 3600.0; // 将速度转换为 m/s
 
-    // 计算中心点和半径
-    Vector3d center = {
-        (topLeft.x + bottomRight.x) / 2,
-        (topLeft.y + bottomRight.y) / 2,
-        0.0};
-    double radius_km = std::min(
-                           std::abs(topLeft.y - bottomRight.y),
-                           std::abs(topLeft.x - bottomRight.x)) *
-                       111 / 2.0; // 简化半径计算，将短边的一半作为半径，1°大约等于111km
-
-    double speed_km_s      = 1000.0 / 3600.0; // 飞机速度，km/s
-    double circumference   = 2 * M_PI * radius_km;
-    double time_per_circle = circumference / speed_km_s;
-    double angle_per_sec   = 2 * M_PI / time_per_circle; // 每秒绕行的角度
-
-    // 生成每秒的路径点
-    for (int t = 0; t < duration_sec; ++t)
+    for (size_t i = 1; i < waypoints.size(); ++i)
     {
-        double angle = angle_per_sec * t; // 计算当前角度
-        path.push_back(calculatePosition(center, radius_km, angle));
+        Vector3d start = waypoints[i - 1];
+        Vector3d end   = waypoints[i];
+
+        double segment_distance = calculateDistance(start, end);
+        int    segment_steps    = static_cast<int>(segment_distance / speed_m_s); // 该段路径所需步数
+
+        // 在该段路径上插值生成路径点
+        for (int step = 0; step <= segment_steps; ++step)
+        {
+            double   t            = static_cast<double>(step) / segment_steps; // 归一化插值参数
+            Vector3d interpolated = {
+                start.x + t * (end.x - start.x),
+                start.y + t * (end.y - start.y),
+                start.z + t * (end.z - start.z)};
+            path.push_back(interpolated);
+        }
     }
 
     return path;
@@ -128,18 +128,6 @@ inline std::vector<Vector3d> applySmoothingFilter(const std::vector<Vector3d> & 
     return smoothed_path;
 }
 
-const double EARTH_RADIUS = 6371000.0; // 地球半径，米
-const double GRAVITY      = 9.81;      // 重力加速度
-
-// 计算两点间的距离（米）
-inline double calculateDistance(const Vector3d & a, const Vector3d & b)
-{
-    double dx = (b.x - a.x) * EARTH_RADIUS * M_PI / 180.0 * cos((a.y + b.y) * M_PI / 360.0);
-    double dy = (b.y - a.y) * EARTH_RADIUS * M_PI / 180.0;
-    double dz = b.z - a.z;
-    return std::sqrt(dx * dx + dy * dy + dz * dz);
-}
-
 // 计算方位角（航向）
 inline double calculateHeading(const Vector3d & a, const Vector3d & b)
 {
@@ -152,7 +140,7 @@ inline double calculateHeading(const Vector3d & a, const Vector3d & b)
 inline double calculatePitch(const Vector3d & a, const Vector3d & b)
 {
     double dz                 = b.z - a.z;
-    double horizontalDistance = std::sqrt(std::pow(b.x - a.x, 2) + std::pow(b.y - a.y, 2))*111000;
+    double horizontalDistance = std::sqrt(std::pow(b.x - a.x, 2) + std::pow(b.y - a.y, 2)) * 111000;
 
     double pitch = std::atan2(dz, horizontalDistance) * 180.0 / M_PI;
     return pitch;
@@ -161,6 +149,10 @@ inline double calculatePitch(const Vector3d & a, const Vector3d & b)
 // 计算横滚角
 inline double calculateRoll(double speed, double radius)
 {
+    if (radius == 0 || radius > 10000)
+    {
+        return 0;
+    }
     return std::atan(speed * speed / (radius * GRAVITY)) * 180.0 / M_PI;
 }
 
@@ -201,8 +193,16 @@ inline std::vector<PlatSate> generateFlightStates(const std::vector<Vector3d> & 
             double cosTheta = (a_to_b * a_to_b + b_to_c * b_to_c - a_to_c * a_to_c) / (2 * a_to_b * b_to_c);
             if (cosTheta < 1.0)
             {
-                double turnRadius = a_to_b / (2 * std::sqrt(1 - cosTheta * cosTheta));
-                roll              = calculateRoll(speed, turnRadius);
+                if (1 - cosTheta * cosTheta > 0)
+                {
+                    double fenmu      = 2 * std::sqrt(1 - cosTheta * cosTheta);
+                    double turnRadius = a_to_b / fenmu;
+                    roll              = calculateRoll(speed, turnRadius);
+                }
+                else
+                {
+                    roll = 0;
+                }
             }
         }
 
@@ -225,6 +225,69 @@ inline std::vector<PlatSate> generateFlightStates(const std::vector<Vector3d> & 
     }
 
     return stateList;
+}
+
+// 在给定范围内生成随机点
+inline std::vector<Vector3d> generateRandomPoints(const Vector3d topLeft, const Vector3d bottomRight, int num_points)
+{
+    std::vector<Vector3d> randomPoints;
+    std::random_device    rd;
+    std::mt19937          gen(rd());
+
+    // 经纬度范围
+    std::uniform_real_distribution<> lon_dist(topLeft.x, bottomRight.x);
+    std::uniform_real_distribution<> lat_dist(bottomRight.y, topLeft.y);
+
+    for (int i = 0; i < num_points; ++i)
+    {
+        double lon = lon_dist(gen);
+        double lat = lat_dist(gen);
+        randomPoints.emplace_back(lon, lat, 10000.0); // 高度固定为10000
+    }
+
+    return randomPoints;
+}
+
+// 函数用于计算两点的叉积
+inline double cross(const Vector3d & o, const Vector3d & a, const Vector3d & b)
+{
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+}
+
+// 凸包算法：将点按顺序排列
+inline std::vector<Vector3d> convexHull(std::vector<Vector3d> & points)
+{
+    std::vector<Vector3d> hull;
+
+    // 按经度排序
+    std::sort(points.begin(), points.end(), [](const Vector3d & a, const Vector3d & b) {
+        return a.x < b.x || (a.x == b.x && a.y < b.y);
+    });
+
+    // 下凸包
+    for (const auto & p : points)
+    {
+        while (hull.size() >= 2 && cross(hull[hull.size() - 2], hull.back(), p) <= 0)
+        {
+            hull.pop_back();
+        }
+        hull.push_back(p);
+    }
+
+    // 上凸包
+    size_t lower_size = hull.size() + 1;
+    for (size_t i = points.size(); i > 0; --i)
+    {
+        const auto & p = points[i - 1];
+        while (hull.size() >= lower_size && cross(hull[hull.size() - 2], hull.back(), p) <= 0)
+        {
+            hull.pop_back();
+        }
+        hull.push_back(p);
+    }
+
+    hull.pop_back(); // 去除最后一个点，因为它和第一个点是重复的
+    return hull;
 }
 
 #endif

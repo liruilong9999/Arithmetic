@@ -37,8 +37,28 @@ Simulation::~Simulation()
     }
 }
 
-void Simulation::startSimulation(int id,int type)
+void Simulation::startSimulation(int id, int type)
 {
+    std::vector<Vector3d> wayPointVec;
+    // vec 赋值
+    std::vector<Vector3d> range;
+    if (m_pDatas->pos == SimuPos::XinJiang)
+    {
+        range = m_rangeXinJiang;
+    }
+    else if (m_pDatas->pos == SimuPos::NanHai)
+    {
+        range = m_rangeNanHai;
+    }
+    //if (id == 1001)
+    {
+        wayPointVec = convexHull(generateRandomPoints(range.front(), range.back(), 14));
+    }
+    //else
+    {
+        //wayPointVec = generateRandomPoints(range.front(), range.back(), 15);
+    }
+
     if (m_step < 1.0)
     {
         m_step = 1.0;
@@ -51,10 +71,10 @@ void Simulation::startSimulation(int id,int type)
     int simulationCount = int(m_minute * 60.0 / m_step);
 
     PlatInfo platInfo;
-    platInfo.platId = id;  
-    platInfo.platType; 
-    platInfo.bizTime = QDateTime::currentMSecsSinceEpoch();
-
+    platInfo.platId = id;
+    platInfo.platType;
+    platInfo.bizTime      = QDateTime::currentMSecsSinceEpoch();
+    platInfo.wayPointList = wayPointVec;
     // 生成轨迹点列表
     generatePathWay(platInfo);
     // 轨迹点列表倒角
@@ -90,11 +110,11 @@ void Simulation::generatePathWay(PlatInfo & platInfo)
     // 如果是预警机，就绕圈，否则随机走
     if (platInfo.platType == PlatType::YJJType)
     {
-        wayPointList = generateFlightPath(range.front(), range.back(), m_minute * 60);
+        wayPointList = generateInterpolatedPath(platInfo.wayPointList, 1200);
     }
     else
     {
-        wayPointList = generateFlightPath(range.front(), range.back(), m_minute * 60);
+        wayPointList = generateInterpolatedPath(platInfo.wayPointList, 1200);
     }
 
     // 生成高度
@@ -116,7 +136,7 @@ void Simulation::generatePathWay(PlatInfo & platInfo)
         {
             if (i < step) // 降低
             {
-                height = height -  heightStep;
+                height = height - heightStep;
             }
             else if (i >= step && i < step * 2) // 升高
             {
@@ -139,7 +159,7 @@ void Simulation::generatePathWay(PlatInfo & platInfo)
 
 void Simulation::bevellingPathWay(PlatInfo & platInfo)
 {
-    int window_size = 3; // 滑动窗口大小
+    int window_size = 15; // 滑动窗口大小
 
     std::vector<Vector3d> pathList = platInfo.wayPointList;
     platInfo.wayPointList          = applySmoothingFilter(pathList, window_size);
