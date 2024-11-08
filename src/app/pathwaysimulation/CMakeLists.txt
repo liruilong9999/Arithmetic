@@ -11,3 +11,4 @@ set(SELF_LIBRARY_LIST)
 
 # 创建项目
 CreateTarget(${ProjectName} "ExeCMD") 
+ 
